@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    {% block meta %}<!-- block meta -->{% endblock %}
+    <title>{% block title %} ? {% endblock %} - WybenGu.com</title>
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js1.4.2/respond.min.js"</script>
+    <![endif]-->
+    <link rel="stylesheet" href="/static/css/uikit.min.css"/>
+    <link rel="stylesheet" href="/static/css/uikit.gradient.min.css"/>
+    <link rel="stylesheet" href="/static/css/awesome.css"/>
+    <link rel="stylesheet" href="/static/css/style.css"/>
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/md5.js"></script>
+    <script src="/static/js/uikit.min.js"></script>
+    <script src="/static/js/sticky.min.js"></script>
+    <script src="/static/js/vue.min.js"></script>
+    <script src="/static/js/awesome.js"></script>
+    {% block beforehead %}<!-- before head -->{% endblock %}
+</head>
+<body>
+    <nav data-uk-sticky class="uk-navbar uk-navbar-attached">
+        <div class="uk-container uk-container-center">
+            <a href="/" class="uk-navbar-brand">WybenGu.com</a>
+            <ul class="uk-navbar-nav">
+                <li data-url="blogs"><a href="/"><i class="uk-icon-home"></i>Home</a></li>
+                <li data-url="about"><a href="/aboutme">About Me</a></li>
+                <li data-url="thisblog"><a href="/aboutthisblog">About This Blog</a></li>
+            </ul>
+            <div class="uk-navbar-flip">
+                <ul class="uk-navbar-nav">
+                {% if user %}
+                    <li class="uk-parent" data-uk-dropdown>
+                        <a href="#0"><i class="uk-icon-user"></i>{{ user.username }}</a>
+                        <div class="uk-dropdown uk-dropdown-navbar">
+                            <ul class="uk-nav uk-nav-navbar">
+                                <li><a href="{{ url_for('logout') }}"><i class="uk-icon-sign-out"></i>登出</a><li>
+                            </ul>
+                        </div>
+                    </li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}"><i class="uk-icon-sign-in"></i>登录</a></li>
+                    <li><a href="/register"><i class="uk-icon-sign-edit"></i>注册</a></li>
+                {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="banner"></div>
+    
+    <div class="uk-container uk-container-center" style="margin-top: 20px;">
+        <div class="uk-grid" >
+            <!-- content -->
+            {% block content %}
+            {% endblock %}
+            <!-- -->
+        </div>
+    </div>
+
+    <div class="uk-margin-large-top" style="background-color:#eee; border-top:1px solid #ccc;">
+        <div class="uk-container uk-container-center uk-text-center">
+            <div class="uk-panel uk-margin-top uk-margin-bottom">
+                <p>
+                    <a target="_blank" href="http://weibo.com/liaoxuefeng" class="uk-icon-button uk-icon-weibo"></a>
+                    <a target="_blank" href="https://github.com/michaelliao" class="uk-icon-button uk-icon-github"></a>
+                </p>
+                <p>Powered by<a href="wybengu.com">WybenGu.com</a>. Copyright &copy; 2014. All rights reserved.[<a href="/manage/" target="_blank">Manage</a>]</p>
+                <a href="http://www.w3.org/TR/html5/" target="_blank"><i class="uk-html5" style="font-size:64px; color: #444;"></i></a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
