@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}目录{% endblock %}
+
+{% block beforehead %}
+
+<script>
+
+function initVM(data) {
+    $('#div-category').show();
+    var vm = new Vue({
+        el: '#div-category',
+        data: {
+            categorys : data.category
+        },
+        methods:{
+            submit: function(event) {
+                event.preventDefault();
+                if (!this.name.trim()) {
+                    return showError('请输入目录名');
+                }
+                startLoading();
+                postApi('/api/category/add', {
+                    name: this.name,
+                },function (err, r) {
+                    if(err){
+                        showError(err);
+                    }
+                    else{
+                        return location.assign('/manage/category');
+                    }
+                    stopLoading();
+                });
+            },
+            edit_category: function(category){
+                postApi('/api/category/edit', {
+                    name: this.name,
+                },function (err) {
+                    if(err){
+                        showError(err);
+                    }
+                    else{
+                        return location.reload;
+                    }
+                });
+            },
+            del_category: function(category){
+                showConfirm('确认删除', '确认要删除目录"' + category.name + '"? 删除后不可恢复!', function(){
+                    postApi('/api/category/' + category.id + '/delete', {}, function(err,r){
+                        if(err){
+                            return showError(err);
+                        }
+                        location.reload();
+                    });
+                });
+            }
+        }
+    });
+}
+
+$(function(){
+    getApi('/api/category',function(err,results){
+        if(err){
+            return showError(err);
+        }
+        $('#div-loading').hide();
+        initVM(results);
+    });
+});
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="uk-width-1-1 uk-margin-bottom">
+        <div class="uk-panel uk-panel-box">
+            <ul class="uk-breadcrumb">
+                <li><a href="/manage/comments">评论</a></li>
+                <li><a href="/manage/blogs">日志</a></li>
+                <li><a href="/manage/users">用户</a></li>
+                <li class="uk-active"><span>目录</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="uk-width-1-1 uk-margin-bottom">
+        <div class="uk-alert uk-alert-danger uk-hidden"></div>
+    </div>
+
+    <div id="div-category" class="uk-width-1-1" style="display:none">
+        <div id="div-add-cate" class="uk-width-1-1 uk-margin-bottom">
+            <button class="uk-button uk-button-primary" data-uk-toggle="{target:'#addcate'}"><i class="uk-icon-plus"></i>新目录</button>
+            <div id="addcate" class="uk-panel uk-panel-box uk-hidden">
+                <!--a href="/manage/blogs/create" class="uk-button uk-button-primary"><i class="uk-icon-plus"></i>新日志</a-->
+                
+                <form v-on="submit: submit" class="uk-form uk-form-statcked">
+                    <table>
+                        <tr><h3>新增目录</h3></tr>
+                        <tr>
+                            <th class="uk-width-8-10">
+                                <div class="uk-form-row">
+                                    <div class="uk-form-controls">
+                                        <input v-model="name" type="text" maxlength="50" placeholder="目录名" class="uk-width-1-1">
+                                    </div>
+                                </div>
+                            </th>
+                            <th class="uk-width-2-10">
+                                <div class="uk-form-row">
+                                    <button type="add_category" class="uk-button uk-button-primary"><i class="uk-icon-plus"></i>添加</button> 
+                                </div>
+                            </th>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    
+        <table class="uk-table uk-table-hover">
+            <thead>
+                <tr>
+                    <th class="uk-width-9-10">目录名</th>
+                    <th class="uk-width-1-10">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-repeat="category:categorys">
+                    <td>
+                        <span v-text="category.name"></span>
+                    </td>
+                    <td>
+                        <a href="#0" v-on="click: category_blog(category)"><i class="uk-icon-edit"></i></a>
+                        <a href="#0" v-on="click: del_category(category)"><i class="uk-icon-trash-o"></i></a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="div-loading" class="uk-width-1-1 uk-text-center">
+        <span><i class="uk-icon-spinner uk-icon-medium uk-icon-spin"></i>正在加载...</span>
+    </div>
+{% endblock %}
