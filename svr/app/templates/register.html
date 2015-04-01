@@ -39,7 +39,7 @@ $(function () {
                 postApi('{{ action }}', {
                     name: this.name,
                     email: this.email.trim().toLowerCase(),
-                    password: CryptoJS.MD5(this.password1).toString(),
+                    password: this.password1,
                 },function (err, r) {
                     if(err){
                         showError(err);

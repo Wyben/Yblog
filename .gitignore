@@ -13,7 +13,7 @@
 *.zip
 *.key
 *.txt
-local_settings.py
+local*
 *~
 #*
 .#*

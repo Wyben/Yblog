@@ -148,16 +148,15 @@ def manage_category():
 
 @app.route('/api/authenticate', methods=['POST'])
 def authenticate():
-    
-    #API for authenticate the user.
-    
+    """API for authenticate the user."""
+
     email = request.form['email']
     password = request.form['password']
     remember = request.form['remember']
     user = User.query.filter_by(email=email).first()
     if user is None:
         raise APIError('auth:failed', 'email', 'Invalid email.')
-    elif user.password != password:
+    elif user._password != password:
         raise APIError('auth:failed', 'password', 'Invalid password.')
     #make session cookie:
     #max_age = 804800 if remember=='true' else None
@@ -335,8 +334,7 @@ _RE_PASSWORD_MD5 = re.compile(r'^[0-9a-f]{32}$')
 
 @app.route('/api/users/create', methods=['POST'])
 def api_register_user():
-    
-    #API for register a user.
+    """API for register a user."""
     
     name = request.form['name']
     email = request.form['email'].lower()
@@ -345,16 +343,17 @@ def api_register_user():
         raise APIValueError('name')
     if not email or not _RE_EMAIL.match(email):
         raise APIValueError('email')
-    if not password or not _RE_PASSWORD_MD5.match(password):
+    if not password:
         raise APIValueError('password')
-    user = User.find_first('where email=?', email)
+    user = User.query.filter(User.email==email).first()
     if user:
         raise APIError('register:failed','email','Email is already in use.')
-    user = User(name=name, email=email, password=password, image='http://www.gravatar.com/avatar/%s?d=mm&s=120' % hashlib.md5(email).hexdigest())
-    user.insert()
+    user = User(username=name, email=email, password=password, image='http://www.gravatar.com/avatar/%s?d=mm&s=120' % hashlib.md5(email).hexdigest())
+    db.session.add(user)
+    db.session.commit()
     # make session cookie:
     session['user_id'] = user.id
-    return user
+    return jsonify(user.serialize)
 
 '''-------------REST APIs for user-----------------'''
 

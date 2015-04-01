@@ -6,6 +6,7 @@ __author__ = 'Wyben Gu'
 Models for user,blog,comment.
 '''
 
+from hashlib import md5
 from app import db
 from datetime import datetime
 
@@ -20,7 +21,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80),unique=True)
     email = db.Column(db.String(120),unique=True)
-    password  = db.Column(db.String(120))
+    __password  = db.Column('password',db.String(120))
     admin = db.Column(db.Boolean)
     image = db.Column(db.String(500))
     register_date = db.Column(db.DateTime)
@@ -28,22 +29,35 @@ class User(db.Model):
     def __init__(self, username, email, password, admin=False, image='',register_date=None):
         self.username = username
         self.email = email
-        self.password = password
+        self._password = password
         self.admin = admin
         self.image = image
         if register_date is None:
             register_date = datetime.utcnow()
         self.register_date = register_date
         
+    def _get_password(self):
+        return self.__password
+                
+    def _set_password(self, password):
+        self.__password = md5(password.encode('utf8')).hexdigest()
+
+    _password = db.synonym("__password", descriptor=property(_get_password,_set_password))
+
+    def password_verify(self, password):
+        if self._password is None:
+            return False
+        return self._password == md5(password.encode('utf8')).hexdigest()
+
     @property
     def serialize(self):
-       '''Return object data in easily serializeable format'''
+       '''Return object data in easily json format'''
        return {
-           'id'            : self.id,
-           'username'      : self.username,
-           'password'      : self.password,
-           'admin'         : self.admin,
-           'image'         : self.image,
+           'id' : self.id,
+           'username' : self.username,
+           'password' : '******',
+           'admin' : self.admin,
+           'image' : self.image,
            'register_date' : dump_datetime(self.register_date)
        }
         
