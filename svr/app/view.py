@@ -1,12 +1,9 @@
 # -*- coding:utf-8 -*-
 
-'''#############################################
+'''
     A simple blog web application base on Flask.           
-#############################################'''
-
-
-
-__author__ = 'Wyben Gu'
+    author: wybengu@gmail.com
+'''
 
 import markdown2, re, hashlib
 from app import app, db
@@ -15,6 +12,9 @@ from models import User, Blog, Category, Comment
 from apis import Page,APIError,APIValueError,APIPermissionError,APIResourceNotFoundError
 
 _MANAGEMENT_ROUTE = '/manage'
+#Regular expess for identify the email and password
+_RE_EMAIL = re.compile(r'^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$')
+_RE_PASSWORD_MD5 = re.compile(r'^[0-9a-f]{32}$')
 
 def _check_admin():
     user = g.user
@@ -225,7 +225,7 @@ def api_get_blogs():
     #   for blog in blogs:
     #        blog.content = markdown2.markdown(blog.content)
     #return dict(blogs=blogs,page=page)
-    return jsonify({'blogs': [ i.serialize for i in blogs ],'page': page.serialize })
+    return jsonify(blogs=[ i.serialize for i in blogs ],page= page.serialize)
 
 @app.route('/api/blogs/<blog_id>', methods=['GET'])
 def api_get_blog(blog_id):
@@ -307,30 +307,22 @@ def api_delete_blog(blog_id):
     if blog is None:
         raise APIResourceNotFoundError('Blog')
     comments = Comment.query.filter_by(blog=blog).all()
-    print 'AAAAAAAAAAAAAAAAAAAAAAAAaaaa'
     db.session.delete(comments)
     db.session.delete(blog)
     db.session.commit()
     return jsonify({'Delete Blog': 'suceed'})
 
-'''-------------REST APIs for user-----------------'''
-
 @app.route('/api/users', methods=['GET'])
 def api_get_users():
+    """API for get users."""
+    
+    page = 1
+    #total_no = User.query.count()
+    #users = User.query.order_by().paginate(page,10,False).items()
+    users = User.query.all()
+    result =  jsonify(users=[ user.serialize for user in users ],page=page)
+    return result
 
-    #API for get users.
-
-    total = User.count_all()
-    page = Page(total, _get_page_index())
-    users = User.find_by('order by created_at desc limit ?,?',page.offset, page.limit)
-    for u in users:
-        u.password = '******'
-    return dict(users=users,page=page)
-
-
-#Regular expess for identify the email and password
-_RE_EMAIL = re.compile(r'^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$')
-_RE_PASSWORD_MD5 = re.compile(r'^[0-9a-f]{32}$')
 
 @app.route('/api/users/create', methods=['POST'])
 def api_register_user():
@@ -355,7 +347,6 @@ def api_register_user():
     session['user_id'] = user.id
     return jsonify(user.serialize)
 
-'''-------------REST APIs for user-----------------'''
 
 @app.route('/api/category', methods=['GET'])
 def api_get_category():

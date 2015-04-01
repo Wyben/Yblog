@@ -66,9 +66,9 @@ $(function(){
                 </tr>
             </thead>
             <tbody>
-                <tr v-repeat="user:users">
+                <tr v-repeat="user: users">
                     <td>
-                        <span v-text="user.name"></span>
+                        <span v-text="user.username"></span>
                         <span v-if="user.admin" style="color:#d05"><i class="uk-icon-key"></i>管理员</span>
                     </td>
                     <td>
