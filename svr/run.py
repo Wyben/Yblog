@@ -1,4 +1,4 @@
-#!flask/bin/python
+#!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
 __author__ = 'Wyben Gu'

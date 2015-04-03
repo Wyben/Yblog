@@ -56,6 +56,7 @@ class User(db.Model):
            'id' : self.id,
            'username' : self.username,
            'password' : '******',
+           'email': self.email,
            'admin' : self.admin,
            'image' : self.image,
            'register_date' : dump_datetime(self.register_date)

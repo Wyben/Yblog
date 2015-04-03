@@ -32,20 +32,12 @@ function _ajax(method, url, data, callback) {
     });
 }
 
-function getApi(url, data, callback) {
-    if (arguments.length === 2) {
+function requestApi(url, method, data, callback) {
+    if (arguments.length === 3) {
         callback = data;
         data = {};
     }
-    _ajax('GET', url, data, callback);
-}
-
-function postApi(url, data, callback) {
-    if (arguments.length === 2) {
-        callback = data;
-        data = {};
-    }
-    _ajax('POST', url, data, callback);
+    _ajax(method, url, data, callback);
 }
 
 function startLoading() {

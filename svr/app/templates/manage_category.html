@@ -59,7 +59,7 @@ function initVM(data) {
 }
 
 $(function(){
-    getApi('/api/category',function(err,results){
+    requestApi('/api/category','GET',function(err,results){
         if(err){
             return showError(err);
         }

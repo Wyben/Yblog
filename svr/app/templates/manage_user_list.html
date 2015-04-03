@@ -26,7 +26,7 @@ function initVM(data) {
 }
 
 $(function(){
-    getApi('/api/users?page={{ page_index }}',function(err,results){
+    requestApi('/api/users?page={{ page_index }}','GET',function(err,results){
         if(err){
             return showError(err);
         }
@@ -75,7 +75,7 @@ $(function(){
                         <a v-attr="href: 'mailto:'+user.email" v-text="user.email"></a>
                     </td>
                     <td>
-                        <span v-text="user.created_at.toDateTime()"></span>
+                        <span v-text="user.register_date"></span>
                     </td>
                 </tr>
             </tbody>

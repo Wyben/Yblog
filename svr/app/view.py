@@ -54,8 +54,7 @@ def _get_blogs_by_page():
 def index():
     '''Index page redirect to blogs page.'''
 
-    blogs, page = _get_blogs_by_page()
-    return render_template("blogs.html", user=g.user,blogs=blogs, page=page)
+    return render_template('blogs.html',page_index=_get_page_index(),user=g.user)
 
 @app.route('/login', methods=['GET','POST'])
 def login():
@@ -92,10 +91,7 @@ def blog(blog_id):
 
 
 
-'''#########################################
-#  Below are the views for management
-#############################################'''
-
+"""Render views for management"""
 
 #Manage index page redirect to comments list page
 @app.route('/manage/', methods=['GET'])
@@ -126,7 +122,7 @@ def manage_blogs_eidt(blog_id):
     if blog is None:
         return abort(404)
     categorys = Category.query.all()
-    kw = dict(id=blog.id, action=url_for('api_update_a_blog',blog_id=blog_id), redirect=url_for('manage_blogs'), user=g.user, categorys=categorys)
+    kw = dict(id=blog.id, action=url_for('api_single_blog',blog_id=blog_id,_method='POST'), redirect=url_for('manage_blogs'), user=g.user, categorys=categorys)
     return render_template('manage_blog_edit.html',**kw)
 
 #Users list page
@@ -215,102 +211,88 @@ def api_delete_comment(comment_id):
 
 
 @app.route('/api/blogs', methods=['GET'])
-def api_get_blogs():
-    
-    #----API for get blogs.--------#
-    
-    #format = 'html' #request.get('format', '')
-    blogs,page = _get_blogs_by_page()
-    #if format=='html':
-    #   for blog in blogs:
-    #        blog.content = markdown2.markdown(blog.content)
-    #return dict(blogs=blogs,page=page)
-    return jsonify(blogs=[ i.serialize for i in blogs ],page= page.serialize)
+def api_blogs():
+    """ API for get blogs or post a blog""" 
+    if request.method == 'GET':
+        #format = 'html' #request.get('format', '')
+        blogs,page = _get_blogs_by_page()
+        #if format=='html':
+        #   for blog in blogs:
+        #        blog.content = markdown2.markdown(blog.content)
+        #return dict(blogs=blogs,page=page)
+        return jsonify(blogs=[ i.serialize for i in blogs ],page= page.serialize)
+    elif request.method == 'POST':
+        #API for create a blog.
+        if not _check_admin():
+            raise APIPermissionError('No permission.')
+        title = request.form['title']
+        category_name = request.form['category']
+        summary = request.form['summary']
+        content = request.form['content']
+        if not title:
+            raise APIValueError('name', 'name cannot be empty.')
+        if not category_name:
+            raise APIValueError('category', 'category cannot be empty.')
+        if not summary:
+            raise APIValueError('summary', 'summary can not be empty.')
+        if not content:
+            raise APIValueError('content', 'content can not be empty.')
+        
+        user = g.user
+        category = Category.query.filter_by(name=category_name).first()
+        blog = Blog(title=title,summary=summary,content=content,author=user,category=category)
+        db.session.add(blog)
+        db.session.commit()
+        return jsonify({'CreateBlog': 'sussed'})
 
-@app.route('/api/blogs/<blog_id>', methods=['GET'])
-def api_get_blog(blog_id):
-    
-    #API for get a blog.
-    
-    blog = Blog.query.filter_by(id=blog_id).first()
-    if blog:
-        return jsonify(blog.serialize)
-    raise APIResourceNotFoundError('Blog')
+@app.route('/api/blogs/<blog_id>', methods=['GET','POST','DELETE'])
+def api_single_blog(blog_id):
+    """API for get/update/delete a blog.
+    """
 
-@app.route('/api/blogs/create', methods=['POST'])
-def api_create_a_blog():
-    
-    #API for create a blog.
-    if not _check_admin():
-        raise APIPermissionError('No permission.')
-    title = request.form['title']
-    category_name = request.form['category']
-    summary = request.form['summary']
-    content = request.form['content']
-    if not title:
-        raise APIValueError('name', 'name cannot be empty.')
-    if not category_name:
-        raise APIValueError('category', 'category cannot be empty.')
-    if not summary:
-        raise APIValueError('summary', 'summary can not be empty.')
-    if not content:
-        raise APIValueError('content', 'content can not be empty.')
-    
-    user = g.user
-    category = Category.query.filter_by(name=category_name).first()
-    blog = Blog(title=title,summary=summary,content=content,author=user,category=category)
-    db.session.add(blog)
-    db.session.commit()
-    return jsonify({'CreateBlog': 'sussed'})
-
-
-@app.route('/api/blogs/<blog_id>', methods=['POST'])
-def api_update_a_blog(blog_id):
-    
-    #API for update a blog.
-    
-    if not _check_admin():
-        raise APIPermissionError('No permission.')
-    title = request.form['title']
-    category_name = request.form['category']
-    summary = request.form['summary']
-    content = request.form['content']
-    if not title:
-        raise APIValueError('name', 'name cannot be empty.')
-    if not category_name:
-        raise APIValueError('category', 'category cannot be empty.')
-    if not summary:
-        raise APIValueError('summary', 'summary can not be empty.')
-    if not content:
-        raise APIValueError('content', 'content can not be empty.')
-    blog = Blog.query.filter_by(id=blog_id).first()
-    if blog is None:
+    if request.method == 'GET':
+        blog = Blog.query.filter_by(id=blog_id).first()
+        if blog:
+            return jsonify(blog.serialize)
         raise APIResourceNotFoundError('Blog')
-    category = Category.query.filter_by(name=category_name).first()
-    if category is None:
-        raise APIResourceNotFoundError('Category')
-    blog.title = title
-    blog.category = category
-    blog.summary = summary
-    blog.content = content
-    db.session.commit()
-    return jsonify({'UpdateBlog': 'suceed'})
-
-@app.route('/api/blogs/<blog_id>/delete', methods=['POST'])
-def api_delete_blog(blog_id):
-    
-    #API for delete a blog.
-    
-    if not _check_admin():
-        raise APIPermissionError('No permission.')
-    blog = Blog.query.filter_by(id=blog_id).first()
-    if blog is None:
-        raise APIResourceNotFoundError('Blog')
-    comments = Comment.query.filter_by(blog=blog).all()
-    db.session.delete(comments)
-    db.session.delete(blog)
-    db.session.commit()
-    return jsonify({'Delete Blog': 'suceed'})
+    elif request.method == 'POST':
+        if not _check_admin():
+            raise APIPermissionError('No permission.')
+        title = request.form['title']
+        category_name = request.form['category']
+        summary = request.form['summary']
+        content = request.form['content']
+        if not title:
+            raise APIValueError('name', 'name cannot be empty.')
+        if not category_name:
+            raise APIValueError('category', 'category cannot be empty.')
+        if not summary:
+            raise APIValueError('summary', 'summary can not be empty.')
+        if not content:
+            raise APIValueError('content', 'content can not be empty.')
+        blog = Blog.query.filter_by(id=blog_id).first()
+        if blog is None:
+            raise APIResourceNotFoundError('Blog')
+        category = Category.query.filter_by(name=category_name).first()
+        if category is None:
+            raise APIResourceNotFoundError('Category')
+        blog.title = title
+        blog.category = category
+        blog.summary = summary
+        blog.content = content
+        db.session.commit()
+        return jsonify({'UpdateBlog': 'suceed'})
+    elif request.method == 'DELETE':
+        if not _check_admin():
+            raise APIPermissionError('No permission.')
+        blog = Blog.query.filter_by(id=blog_id).first()
+        if blog is None:
+            raise APIResourceNotFoundError('Blog')
+        comments = Comment.query.filter(Comment.blog==blog).all()
+        db.session.delete(comments)
+        db.session.delete(blog)
+        db.session.commit()
+        return jsonify({'Delete Blog': 'suceed'})
 
 @app.route('/api/users', methods=['GET'])
 def api_get_users():

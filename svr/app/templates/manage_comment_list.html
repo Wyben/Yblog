@@ -37,7 +37,7 @@ function initVM(data) {
 }
 
 $(function(){
-    getApi('/api/comments?page={{ page_index }}',function(err,results){
+    requestApi('/api/comments?page={{ page_index }}','GET',function(err,results){
         if(err){
             return showError(err);
         }

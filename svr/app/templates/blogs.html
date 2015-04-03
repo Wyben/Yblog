@@ -5,6 +5,36 @@
 {% block beforehead %}
 
 <script>
+
+function initVM(data) {
+    $('#div-blogs').show();
+    var vm = new Vue({
+        el: '#div-blogs',
+        data: {
+            blogs: data.blogs,
+            page: data.page
+        },
+        methods:{
+            previous: function(){
+                gotoPage(this.page.page_index-1);
+            },
+            next: function(){
+                gotoPage(this.page.page_index+1);
+            }
+        }
+    });
+}
+
+$(function(){
+    requestApi('/api/blogs?page={{ page_index }}', 'GET',function(err,results){
+        if(err){
+            return showError(err);
+        }
+        $('#div-loading').hide();
+        initVM(results);
+    });
+});
+
 </script>
 
 {% endblock %}
@@ -12,28 +42,28 @@
 {% block content %}
 
     <div class="uk-width-medium-3-4">
-    {% for blog in blogs %}
-        <article class="uk-article">
-            <h2><a href="/blog/{{ blog.id }}">{{ blog.title }}</a></h2>
-            <p class="uk-article-meta">发表于{{ blog.pub_date |datetime }}</p>
-            <p> {{ blog.summary }}</p>
-            <p><a href="/blog/{{ blog.id }}">继续阅读<i class="uk-icon-angle-double-right"></i></a></p>
-        </article>
-        <hr class="uk-article-divider"/>
-    {% endfor %}
-        <ul class="uk-pagination">
-        {% if page.has_previous %}
-            <li><a href="/?page={{ page.page_index -1 }}"><i class="uk-icon-angle-double-left"></i></a></li>
-        {% else %}
-            <li class="uk-disabled"><span><i class="uk-icon-angle-double-left"></i></sapn></li>
-        {% endif %}
-            <li class="uk-active"><span>{{ page.page_index }}</span></li>
-        {% if page.has_next %}
-            <li><a href="/?page={{ page.page_index + 1 }}"><i class="uk-icon-angle-double-right"></i></a></li>
-        {% else %}
-            <li class="uk-disabled"><span><i class="uk-icon-angle-double-right"></i></sapn></li>
-        {% endif %}
-        </ul>
+        <!-- 这是一段注释。注释不会在浏览器中显示。-->
+        <div id="div-blogs" class="uk-width-1-1" style="display:none">
+            <div v-repeat="blog: blogs">
+                <article class="uk-article">
+                    <h2><a v-attr="href: '/blog/'+blog.id" v-text="blog.title"></a></h2>
+                    <p class="uk-article-meta">发表于<span v-text="blog.pub_date"></span></p>
+                    <p><span v-text="blog.summary"></span></p>
+                    <p><a v-attr="href: '/blog/'+blog.id">继续阅读<i class="uk-icon-angle-double-right"></i></a></p>
+                </article>
+                <hr class="uk-article-divider"/>
+            </div>
+
+            <div class="uk-width-1-1 uk-text-center">
+                <ul class="uk-pagination">
+                    <li v-if="! page.has_previous" class="uk-disabled"><span><i class="uk-icon-angle-double-left"></i></span></li>   
+                    <li v-if="page.has_previous"><a v-on="click: previous()" href="#0"><i class="uk-icon-angle-double-left"></i></a></li>   
+                    <li class="uk-active"><span v-text="page.page_index"></span></li>
+                    <li v-if="! page.has_next" class="uk-disabled"><span><i class="uk-icon-angle-double-right"></i></span></li>   
+                    <li v-if="page.has_next"><a v-on="click: next()" href="#0"><i class="uk-icon-angle-double-right"></i></a></li>   
+                </ul>
+            </div>
+        </div>
     </div>
     
     <div class="uk-width-medium-1-4">
