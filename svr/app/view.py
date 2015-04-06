@@ -112,7 +112,7 @@ def manage_blogs():
 @app.route('/manage/blogs/create', methods=['GET'])
 def manage_blogs_create():
     categorys = Category.query.all()
-    kw =  dict(id=None, action=url_for('api_create_a_blog'), redirect=url_for('manage_blogs'), user=g.user, categorys=categorys) 
+    kw =  dict(id=None, action=url_for('api_blogs'), redirect=url_for('manage_blogs'), user=g.user, categorys=categorys) 
     return render_template('manage_blog_edit.html',**kw)
 
 #Edit the blog by blog_id
@@ -122,7 +122,7 @@ def manage_blogs_eidt(blog_id):
     if blog is None:
         return abort(404)
     categorys = Category.query.all()
-    kw = dict(id=blog.id, action=url_for('api_single_blog',blog_id=blog_id,_method='POST'), redirect=url_for('manage_blogs'), user=g.user, categorys=categorys)
+    kw = dict(id=blog.id, action=url_for('api_single_blog',blog_id=blog_id), redirect=url_for('manage_blogs'), user=g.user, categorys=categorys)
     return render_template('manage_blog_edit.html',**kw)
 
 #Users list page
@@ -210,7 +210,7 @@ def api_delete_comment(comment_id):
 '''---------------REST APIs for blog--------------------'''
 
 
-@app.route('/api/blogs', methods=['GET'])
+@app.route('/api/blogs', methods=['GET','POST'])
 def api_blogs():
     """ API for get blogs or post a blog""" 
     if request.method == 'GET':

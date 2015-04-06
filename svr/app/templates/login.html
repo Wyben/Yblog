@@ -30,7 +30,7 @@
                     var email = this.email.trim().toLowerCase();
                     showError
                     startLoading();
-                    postApi('api/authenticate', {
+                    requestApi('api/authenticate','POST', {
                         email: email,
                         password: CryptoJS.MD5(this.password).toString(),
                         remember: this.remember

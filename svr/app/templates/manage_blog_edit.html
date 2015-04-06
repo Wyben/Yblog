@@ -23,7 +23,7 @@ function initVue(blog) {
             submit: function (event) {
                 event.preventDefault();
                 startLoading();
-                postApi(action, this.$data, function (err,r){
+                requestApi(action,'POST', this.$data, function (err,r){
                     if (err) {
                         alert(err);
                     }
@@ -43,7 +43,7 @@ function initVue(blog) {
 // {% if id %}
 
 $(function (){
-    getApi('/api/blogs/{{ id }}', function(err,blog){
+    requestApi('/api/blogs/{{ id }}','GET', function(err,blog){
         if(err){
             showError(err);
         }
